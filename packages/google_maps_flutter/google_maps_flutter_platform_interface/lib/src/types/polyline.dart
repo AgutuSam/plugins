@@ -49,7 +49,7 @@ class Polyline {
     this.endCap = Cap.buttCap,
     this.geodesic = false,
     this.jointType = JointType.mitered,
-    this.points = const <LatLng>[],
+    this.points = const <List<LatLng>>[],
     this.patterns = const <PatternItem>[],
     this.startCap = Cap.buttCap,
     this.visible = true,
@@ -96,7 +96,7 @@ class Polyline {
   ///
   /// Line segments are drawn between consecutive points. A polyline is not closed by
   /// default; to form a closed polyline, the start and end points must be the same.
-  final List<LatLng> points;
+  final List<List<LatLng>> points;
 
   /// The cap at the start vertex of the polyline.
   ///
@@ -140,7 +140,7 @@ class Polyline {
     bool geodesicParam,
     JointType jointTypeParam,
     List<PatternItem> patternsParam,
-    List<LatLng> pointsParam,
+    List<List<LatLng>> pointsParam,
     Cap startCapParam,
     bool visibleParam,
     int widthParam,
@@ -155,7 +155,8 @@ class Polyline {
       geodesic: geodesicParam ?? geodesic,
       jointType: jointTypeParam ?? jointType,
       patterns: patternsParam ?? patterns,
-      points: pointsParam ?? points,
+      points: pointsParam.asMap().entries.map((e) => e.value) ??
+          points.asMap().entries.map((e) => e.value),
       startCap: startCapParam ?? startCap,
       visible: visibleParam ?? visible,
       width: widthParam ?? width,
@@ -169,7 +170,7 @@ class Polyline {
   Polyline clone() {
     return copyWith(
       patternsParam: List<PatternItem>.of(patterns),
-      pointsParam: List<LatLng>.of(points),
+      pointsParam: points.asMap().entries.map((e) => List<LatLng>.of(e.value)),
     );
   }
 
@@ -195,7 +196,11 @@ class Polyline {
     addIfPresent('zIndex', zIndex);
 
     if (points != null) {
-      json['points'] = _pointsToJson();
+      for (var point in points) {
+        if (point != null) {
+          json['points'] = _pointsToJson();
+        }
+      }
     }
 
     if (patterns != null) {
@@ -229,8 +234,10 @@ class Polyline {
 
   dynamic _pointsToJson() {
     final List<dynamic> result = <dynamic>[];
-    for (final LatLng point in points) {
-      result.add(point.toJson());
+    for (List<LatLng> poin in points) {
+      for (final LatLng point in poin) {
+        result.add(point.toJson());
+      }
     }
     return result;
   }
